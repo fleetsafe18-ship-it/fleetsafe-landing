@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FleetSafe — Telemetria Inteligente para Frotas</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #07090D; --surface: #0D1117; --surfaceB: #131B24; --surfaceC: #1A2332;
+    --border: #1E2D40; --accent: #0EA5E9; --accentLo: rgba(14,165,233,0.1);
+    --green: #22C55E; --red: #EF4444; --blue: #3B82F6; --purple: #A855F7;
+    --tx1: #E8F0F8; --tx2: #7A8FA6; --tx3: #3D5068;
+    --fm: 'JetBrains Mono', 'Fira Code', monospace;
+    --fs: 'DM Sans', system-ui, sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--tx1); font-family: var(--fs); }
+
+  /* NAV */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(7,9,13,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 6%; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-family: var(--fm); font-size: 20px; font-weight: 800; color: var(--tx1); letter-spacing: -0.03em; text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { color: var(--tx2); font-size: 13px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--tx1); }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-ghost { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 18px; color: var(--tx2); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--fm); text-decoration: none; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: #0EA5E9; border: none; border-radius: 8px; padding: 9px 20px; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--fm); text-decoration: none; transition: opacity 0.2s; }
+  .btn-primary:hover { opacity: 0.9; }
+
+  /* HERO */
+  .hero { padding: 130px 6% 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; max-width: 1280px; margin: 0 auto; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--accentLo); border: 1px solid rgba(14,165,233,0.3); border-radius: 20px; padding: 5px 14px; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; font-family: var(--fm); margin-bottom: 20px; }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0EA5E9; }
+  h1 { font-size: 48px; font-weight: 800; line-height: 1.1; color: var(--tx1); margin-bottom: 20px; letter-spacing: -0.02em; font-family: var(--fm); }
+  h1 em { color: var(--accent); font-style: normal; }
+  .hero-sub { font-size: 16px; color: var(--tx2); line-height: 1.7; margin-bottom: 32px; max-width: 460px; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-large { padding: 13px 28px; font-size: 13px; border-radius: 10px; }
+  .btn-outline-large { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 13px 28px; color: var(--tx2); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--fm); text-decoration: none; transition: all 0.2s; }
+  .btn-outline-large:hover { border-color: var(--tx2); color: var(--tx1); }
+  .hero-stats { display: flex; gap: 32px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); }
+  .hero-stat-val { font-size: 22px; font-weight: 700; color: var(--tx1); font-family: var(--fm); }
+  .hero-stat-label { font-size: 11px; color: var(--tx3); margin-top: 2px; }
+
+  /* DASHBOARD MOCKUP */
+  .mockup { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .mockup-bar { background: var(--surfaceB); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .mockup-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .mockup-title { font-size: 11px; color: var(--tx3); font-family: var(--fm); margin-left: 8px; }
+  .mockup-body { padding: 16px; }
+  .mockup-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+  .mockup-card { background: var(--surfaceB); border-radius: 8px; padding: 10px 12px; }
+  .mockup-card-label { font-size: 9px; color: var(--tx3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .mockup-card-val { font-size: 18px; font-weight: 700; font-family: var(--fm); }
+  .mockup-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mockup-panel { background: var(--surfaceB); border-radius: 8px; padding: 12px; }
+  .mockup-panel-title { font-size: 9px; color: var(--tx3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; font-family: var(--fm); }
+  .vehicle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+  .vehicle-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .vehicle-name { font-size: 11px; color: var(--tx1); font-family: var(--fm); }
+  .vehicle-status { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .fuel-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; }
+  .fuel-fill { height: 100%; border-radius: 2px; }
+  .alert-row { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 6px; padding: 7px 10px; margin-bottom: 6px; }
+  .alert-row-y { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.2); border-radius: 6px; padding: 7px 10px; margin-bottom: 6px; }
+  .alert-msg { font-size: 10px; color: var(--tx1); }
+  .alert-sub { font-size: 9px; color: var(--tx3); margin-top: 2px; font-family: var(--fm); }
+  .ai-badge { background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.3); border-radius: 6px; padding: 8px 10px; margin-top: 8px; }
+  .ai-badge-label { font-size: 8px; color: var(--purple); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 4px; }
+  .ai-badge-text { font-size: 10px; color: var(--tx2); }
+
+  /* LOGOS */
+  .logos-section { padding: 40px 6%; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .logos-label { font-size: 11px; color: var(--tx3); text-align: center; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; font-family: var(--fm); }
+  .logos-row { display: flex; justify-content: center; align-items: center; gap: 48px; flex-wrap: wrap; }
+  .logo-item { font-size: 15px; font-weight: 700; color: var(--tx3); font-family: var(--fm); letter-spacing: 0.04em; }
+
+  /* FEATURES */
+  .features-section { padding: 90px 6%; max-width: 1280px; margin: 0 auto; }
+  .section-label { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--fm); font-weight: 700; margin-bottom: 12px; }
+  .section-title { font-size: 36px; font-weight: 800; color: var(--tx1); font-family: var(--fm); letter-spacing: -0.02em; margin-bottom: 14px; }
+  .section-sub { font-size: 15px; color: var(--tx2); max-width: 520px; line-height: 1.7; margin-bottom: 52px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+  .feature-card:hover { border-color: var(--accent); }
+  .feature-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 18px; }
+  .feature-title { font-size: 14px; font-weight: 700; color: var(--tx1); margin-bottom: 8px; }
+  .feature-desc { font-size: 13px; color: var(--tx2); line-height: 1.6; }
+
+  /* MODULES */
+  .modules-section { padding: 90px 6%; background: var(--surface); }
+  .modules-inner { max-width: 1280px; margin: 0 auto; }
+  .modules-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 48px; }
+  .module-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .module-icon { font-size: 20px; margin-bottom: 10px; }
+  .module-name { font-size: 12px; font-weight: 700; color: var(--tx1); margin-bottom: 4px; font-family: var(--fm); }
+  .module-desc { font-size: 11px; color: var(--tx3); line-height: 1.5; }
+
+  /* PLANS */
+  .plans-section { padding: 90px 6%; max-width: 1280px; margin: 0 auto; }
+  .plans-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 52px; }
+  .plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; position: relative; }
+  .plan-card.featured { border-color: var(--accent); }
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #0EA5E9; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 14px; border-radius: 20px; font-family: var(--fm); letter-spacing: 0.06em; white-space: nowrap; }
+  .plan-name { font-size: 13px; font-weight: 700; color: var(--tx2); font-family: var(--fm); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .plan-price { font-size: 36px; font-weight: 800; color: var(--tx1); font-family: var(--fm); margin-bottom: 4px; }
+  .plan-price span { font-size: 14px; color: var(--tx3); font-weight: 400; }
+  .plan-sub { font-size: 12px; color: var(--tx3); margin-bottom: 24px; }
+  .plan-features { list-style: none; margin-bottom: 28px; }
+  .plan-features li { font-size: 13px; color: var(--tx2); padding: 7px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .plan-features li::before { content: '✓'; color: var(--green); font-weight: 700; font-size: 11px; }
+  .plan-features li.off { color: var(--tx3); }
+  .plan-features li.off::before { content: '×'; color: var(--tx3); }
+
+  /* CTA */
+  .cta-section { padding: 90px 6%; text-align: center; background: var(--surface); border-top: 1px solid var(--border); }
+  .cta-title { font-size: 40px; font-weight: 800; color: var(--tx1); font-family: var(--fm); letter-spacing: -0.02em; margin-bottom: 14px; }
+  .cta-sub { font-size: 15px; color: var(--tx2); margin-bottom: 36px; }
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer { padding: 40px 6%; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .footer-copy { font-size: 12px; color: var(--tx3); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 12px; color: var(--tx3); text-decoration: none; }
+  .footer-links a:hover { color: var(--tx2); }
+
+
+  /* BACKGROUND */
+  #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  body > *:not(#bg-canvas) { position: relative; z-index: 1; }
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp 0.6s ease forwards; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+
+<svg id="bg-canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#0EA5E9" stroke-width="0.3" opacity="0.12"/>
+    </pattern>
+    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="15" r="1" fill="#0EA5E9" opacity="0.18"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid overlay -->
+  <rect width="1440" height="900" fill="url(#grid)"/>
+
+  <!-- Dot pattern subtle -->
+  <rect width="1440" height="900" fill="url(#dots)" opacity="0.4"/>
+
+  <!-- Glow blobs -->
+  <ellipse cx="200" cy="200" rx="320" ry="200" fill="#0EA5E9" opacity="0.03"/>
+  <ellipse cx="1200" cy="600" rx="400" ry="250" fill="#0EA5E9" opacity="0.04"/>
+  <ellipse cx="720" cy="450" rx="500" ry="300" fill="#0EA5E9" opacity="0.02"/>
+
+  <!-- Truck 1 - large, right side, very faint -->
+  <g opacity="0.04" transform="translate(980, 520)">
+    <rect x="0" y="40" width="280" height="100" rx="4" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <rect x="220" y="10" width="60" height="130" rx="4" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="50" cy="150" r="20" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="230" cy="150" r="20" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <line x1="220" y1="10" x2="220" y2="140" stroke="#0EA5E9" stroke-width="1"/>
+    <rect x="228" y="18" width="44" height="30" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+  </g>
+
+  <!-- Truck 2 - small, left, very faint -->
+  <g opacity="0.05" transform="translate(80, 680) scale(0.6)">
+    <rect x="0" y="40" width="280" height="100" rx="4" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <rect x="220" y="10" width="60" height="130" rx="4" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="50" cy="150" r="20" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="230" cy="150" r="20" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+  </g>
+
+  <!-- Chart bars - bottom right -->
+  <g opacity="0.07" transform="translate(1150, 300)">
+    <rect x="0" y="80" width="28" height="60" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <rect x="38" y="50" width="28" height="90" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <rect x="76" y="20" width="28" height="120" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <rect x="114" y="40" width="28" height="100" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <rect x="152" y="10" width="28" height="130" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <line x1="0" y1="140" x2="180" y2="140" stroke="#0EA5E9" stroke-width="0.8"/>
+  </g>
+
+  <!-- Line chart - top left -->
+  <g opacity="0.03" transform="translate(60, 120)">
+    <polyline points="0,80 50,60 100,70 150,30 200,45 250,20 300,35 350,10" fill="none" stroke="#0EA5E9" stroke-width="1.5"/>
+    <circle cx="0" cy="80" r="3" fill="#0EA5E9"/>
+    <circle cx="100" cy="70" r="3" fill="#0EA5E9"/>
+    <circle cx="200" cy="45" r="3" fill="#0EA5E9"/>
+    <circle cx="350" cy="10" r="3" fill="#0EA5E9"/>
+    <line x1="0" y1="90" x2="360" y2="90" stroke="#0EA5E9" stroke-width="0.5" opacity="0.5"/>
+    <line x1="0" y1="60" x2="360" y2="60" stroke="#0EA5E9" stroke-width="0.5" opacity="0.3"/>
+    <line x1="0" y1="30" x2="360" y2="30" stroke="#0EA5E9" stroke-width="0.5" opacity="0.3"/>
+  </g>
+
+  <!-- Hexagon decorative -->
+  <g opacity="0.05" transform="translate(1300, 80)">
+    <polygon points="60,0 120,34 120,104 60,138 0,104 0,34" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <polygon points="60,20 100,43 100,90 60,113 20,90 20,43" fill="none" stroke="#0EA5E9" stroke-width="0.5"/>
+  </g>
+  <g opacity="0.04" transform="translate(-30, 400)">
+    <polygon points="60,0 120,34 120,104 60,138 0,104 0,34" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+  </g>
+
+  <!-- Route lines / GPS paths -->
+  <g opacity="0.06">
+    <path d="M 100 800 Q 300 600 500 700 Q 700 800 900 550 Q 1100 300 1350 400" fill="none" stroke="#0EA5E9" stroke-width="1" stroke-dasharray="6 4"/>
+    <circle cx="100" cy="800" r="4" fill="#0EA5E9" opacity="0.3"/>
+    <circle cx="500" cy="700" r="4" fill="#0EA5E9" opacity="0.3"/>
+    <circle cx="900" cy="550" r="4" fill="#0EA5E9" opacity="0.3"/>
+    <circle cx="1350" cy="400" r="4" fill="#0EA5E9" opacity="0.3"/>
+  </g>
+
+  <!-- Signal circles -->
+  <g opacity="0.05" transform="translate(700, 750)">
+    <circle cx="0" cy="0" r="20" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#0EA5E9" stroke-width="0.7"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#0EA5E9" stroke-width="0.5"/>
+    <circle cx="0" cy="0" r="5" fill="#0EA5E9"/>
+  </g>
+
+  <!-- Circuit lines top right -->
+  <g opacity="0.06" transform="translate(1050, 50)">
+    <line x1="0" y1="30" x2="80" y2="30" stroke="#0EA5E9" stroke-width="1"/>
+    <line x1="80" y1="30" x2="80" y2="80" stroke="#0EA5E9" stroke-width="1"/>
+    <line x1="80" y1="80" x2="160" y2="80" stroke="#0EA5E9" stroke-width="1"/>
+    <line x1="160" y1="80" x2="160" y2="20" stroke="#0EA5E9" stroke-width="1"/>
+    <line x1="160" y1="20" x2="240" y2="20" stroke="#0EA5E9" stroke-width="1"/>
+    <circle cx="80" cy="30" r="3" fill="#0EA5E9"/>
+    <circle cx="160" cy="80" r="3" fill="#0EA5E9"/>
+    <rect cx="30" cy="20" x="20" y="20" width="20" height="20" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+    <rect cx="110" cy="65" x="110" y="65" width="20" height="20" rx="2" fill="none" stroke="#0EA5E9" stroke-width="1"/>
+  </g>
+</svg>
+
+<nav>
+  <a href="#" class="logo"><svg width="170" height="28" viewBox="0 0 170 28" style="display:inline-block;vertical-align:middle"><path d="M1 8 L10 14 L1 20" fill="none" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/><path d="M9 8 L18 14 L9 20" fill="none" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><text x="26" y="19" font-family="JetBrains Mono,monospace" font-size="16" font-weight="800" fill="#E8F0F8">FLEET</text><text x="94" y="19" font-family="JetBrains Mono,monospace" font-size="16" font-weight="800" fill="#0EA5E9">SAFE</text></svg></a>
+  <ul class="nav-links">
+    <li><a href="#solucoes">Soluções</a></li>
+    <li><a href="#modulos">Módulos</a></li>
+    <li><a href="#planos">Planos</a></li>
+    <li><a href="#contato">Contato</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="https://fleetsafe-wine.vercel.app" class="btn-ghost">Entrar</a>
+    <a href="#contato" class="btn-primary">Solicitar demonstração</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section style="padding-top: 20px;">
+  <div class="hero">
+    <div class="fade-up">
+      <div class="hero-badge">Telemetria Inteligente</div>
+      <h1>Dados que dirigem decisões. Tecnologia que <em>protege</em> o que mais importa.</h1>
+      <p class="hero-sub">A FleetSafe transforma dados da sua frota em decisões mais seguras, eficientes e econômicas — em tempo real.</p>
+      <div class="hero-ctas">
+        <a href="#contato" class="btn-primary btn-large">Solicitar demonstração →</a>
+        <a href="#modulos" class="btn-outline-large">Conhecer soluções</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-val" style="color: var(--green);">-28%</div>
+          <div class="hero-stat-label">Redução de acidentes</div>
+        </div>
+        <div>
+          <div class="hero-stat-val" style="color: var(--accent);">-19%</div>
+          <div class="hero-stat-label">Custo com combustível</div>
+        </div>
+        <div>
+          <div class="hero-stat-val">24/7</div>
+          <div class="hero-stat-label">Monitoramento ativo</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup fade-up" style="animation-delay: 0.2s;">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#EF4444"></div>
+        <div class="mockup-dot" style="background:#EAB308"></div>
+        <div class="mockup-dot" style="background:#22C55E"></div>
+        <span class="mockup-title">fleetsafe — Dashboard</span>
+        <span style="margin-left:auto; font-size:9px; color: var(--green); font-family: var(--fm);" class="pulse">● AO VIVO</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-grid">
+          <div class="mockup-card"><div class="mockup-card-label">Em Rota</div><div class="mockup-card-val" style="color:var(--green)">12</div></div>
+          <div class="mockup-card"><div class="mockup-card-label">Parados</div><div class="mockup-card-val" style="color:var(--yellow,#EAB308)">5</div></div>
+          <div class="mockup-card"><div class="mockup-card-label">Alertas</div><div class="mockup-card-val" style="color:var(--accent)">3</div></div>
+          <div class="mockup-card"><div class="mockup-card-label">Score Médio</div><div class="mockup-card-val" style="color:var(--blue)">87</div></div>
+        </div>
+        <div class="mockup-row">
+          <div class="mockup-panel">
+            <div class="mockup-panel-title">Frota ao vivo</div>
+            <div class="vehicle-row"><div style="display:flex;align-items:center;gap:7px"><div class="vehicle-dot" style="background:var(--green)"></div><span class="vehicle-name">ABC-1234</span></div><span class="vehicle-status" style="background:rgba(34,197,94,0.12);color:var(--green)">EM ROTA</span></div>
+            <div class="fuel-bar"><div class="fuel-fill" style="width:72%;background:var(--green)"></div></div>
+            <div class="vehicle-row" style="margin-top:8px"><div style="display:flex;align-items:center;gap:7px"><div class="vehicle-dot" style="background:#EAB308"></div><span class="vehicle-name">XYZ-9876</span></div><span class="vehicle-status" style="background:rgba(234,179,8,0.12);color:#EAB308">PARADO</span></div>
+            <div class="fuel-bar"><div class="fuel-fill" style="width:38%;background:#EAB308"></div></div>
+            <div class="vehicle-row" style="margin-top:8px"><div style="display:flex;align-items:center;gap:7px"><div class="vehicle-dot" style="background:var(--accent)"></div><span class="vehicle-name">DEF-5555</span></div><span class="vehicle-status" style="background:rgba(14,165,233,0.12);color:var(--accent)">MANUTENÇÃO</span></div>
+            <div class="fuel-bar"><div class="fuel-fill" style="width:20%;background:var(--red)"></div></div>
+          </div>
+          <div class="mockup-panel">
+            <div class="mockup-panel-title">Alertas recentes</div>
+            <div class="alert-row"><div class="alert-msg">Velocidade excessiva</div><div class="alert-sub">ABC-1234 · agora</div></div>
+            <div class="alert-row-y"><div class="alert-msg">Combustível baixo</div><div class="alert-sub">XYZ-9876 · há 12 min</div></div>
+            <div class="ai-badge">
+              <div class="ai-badge-label">IA Insight</div>
+              <div class="ai-badge-text">Padrão de frenagem severa detectado. Risco reduzido em 37%.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos-section">
+  <div class="logos-label">Empresas que confiam na FleetSafe</div>
+  <div class="logos-row">
+    <span class="logo-item">BRASPRESS</span>
+    <span class="logo-item">● LOCALIZA</span>
+    <span class="logo-item">JSL</span>
+    <span class="logo-item">AMBEV</span>
+    <span class="logo-item">VAMOS</span>
+    <span class="logo-item">TEGMA</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-section" id="solucoes">
+  <div class="section-label">Por que FleetSafe</div>
+  <div class="section-title">Tudo que sua frota precisa.<br>Em um só lugar.</div>
+  <p class="section-sub">Plataforma completa de telemetria com IA, gestão de motoristas, manutenção preventiva e controle financeiro.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(34,197,94,0.12)">📍</div>
+      <div class="feature-title">Rastreamento em tempo real</div>
+      <div class="feature-desc">GPS ao vivo com histórico de rotas, velocidade e comportamento do motorista.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(168,85,247,0.12)">🤖</div>
+      <div class="feature-title">Inteligência Artificial</div>
+      <div class="feature-desc">IA que identifica padrões de risco, prevê falhas mecânicas e otimiza performance.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(14,165,233,0.12)">🔔</div>
+      <div class="feature-title">Alertas instantâneos</div>
+      <div class="feature-desc">Notificações imediatas de velocidade, área restrita, combustível baixo e pânico.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(59,130,246,0.12)">👤</div>
+      <div class="feature-title">Gestão de motoristas</div>
+      <div class="feature-desc">Score de direção, CNH, toxicológico, documentos e endereço completo.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(234,179,8,0.12)">🔧</div>
+      <div class="feature-title">Manutenção preventiva</div>
+      <div class="feature-desc">Agenda automática de revisões, alertas de vencimento e histórico de serviços.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(34,197,94,0.12)">💰</div>
+      <div class="feature-title">Controle financeiro</div>
+      <div class="feature-desc">Custos de combustível, manutenção e receitas com relatórios em PDF e CSV.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="modules-section" id="modulos">
+  <div class="modules-inner">
+    <div class="section-label">Módulos</div>
+    <div class="section-title">11 módulos integrados.</div>
+    <p class="section-sub">Cada módulo foi desenvolvido para frotas de 5 a 200 veículos, com interface intuitiva e dados em tempo real.</p>
+    <div class="modules-grid">
+      <div class="module-card"><div class="module-icon">🗺️</div><div class="module-name">Mapa ao vivo</div><div class="module-desc">Posição GPS de toda a frota em tempo real</div></div>
+      <div class="module-card"><div class="module-icon">🚛</div><div class="module-name">Gestão de frota</div><div class="module-desc">Cadastro, status e telemetria de veículos</div></div>
+      <div class="module-card"><div class="module-icon">👤</div><div class="module-name">Motoristas</div><div class="module-desc">Perfil completo, score e documentos</div></div>
+      <div class="module-card"><div class="module-icon">🔔</div><div class="module-name">Alertas</div><div class="module-desc">Eventos críticos com severidade e histórico</div></div>
+      <div class="module-card"><div class="module-icon">📷</div><div class="module-name">Câmeras IA</div><div class="module-desc">Visão computacional para segurança</div></div>
+      <div class="module-card"><div class="module-icon">🔧</div><div class="module-name">Manutenção</div><div class="module-desc">Preventiva, corretiva e agendamentos</div></div>
+      <div class="module-card"><div class="module-icon">⛽</div><div class="module-name">Combustível</div><div class="module-desc">Abastecimentos e consumo médio</div></div>
+      <div class="module-card"><div class="module-icon">💰</div><div class="module-name">Financeiro</div><div class="module-desc">Receitas, despesas e saldo da frota</div></div>
+      <div class="module-card"><div class="module-icon">📊</div><div class="module-name">Relatórios</div><div class="module-desc">PDF e CSV de todos os módulos</div></div>
+      <div class="module-card"><div class="module-icon">📋</div><div class="module-name">Planos</div><div class="module-desc">Gestão de assinaturas e clientes</div></div>
+      <div class="module-card"><div class="module-icon">🏢</div><div class="module-name">Multi-empresa</div><div class="module-desc">Cada cliente isolado e seguro</div></div>
+      <div class="module-card" style="border-color: rgba(14,165,233,0.3); background: var(--accentLo);"><div class="module-icon">🤖</div><div class="module-name" style="color:var(--accent)">IA Insights</div><div class="module-desc">Análise preditiva e recomendações</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="plans-section" id="planos">
+  <div class="section-label">Planos</div>
+  <div class="section-title">Simples e transparente.</div>
+  <p class="section-sub">Sem taxa de setup, sem fidelidade. Pague apenas pelos veículos ativos.</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">R$ 89<span>/veículo/mês</span></div>
+      <div class="plan-sub">Ideal para frotas de 5 a 20 veículos</div>
+      <ul class="plan-features">
+        <li>Rastreamento GPS ao vivo</li>
+        <li>Alertas de velocidade e área</li>
+        <li>Gestão de motoristas</li>
+        <li>Relatórios básicos</li>
+        <li class="off">Câmeras IA</li>
+        <li class="off">IA Insights avançado</li>
+      </ul>
+      <a href="#contato" class="btn-ghost" style="display:block;text-align:center;padding:11px;">Começar agora</a>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">MAIS POPULAR</div>
+      <div class="plan-name" style="color:var(--accent)">Pro</div>
+      <div class="plan-price">R$ 149<span>/veículo/mês</span></div>
+      <div class="plan-sub">Para frotas que precisam de controle total</div>
+      <ul class="plan-features">
+        <li>Tudo do Starter</li>
+        <li>Câmeras IA integradas</li>
+        <li>Manutenção preventiva</li>
+        <li>Controle financeiro</li>
+        <li>IA Insights completo</li>
+        <li>Suporte prioritário</li>
+      </ul>
+      <a href="#contato" class="btn-primary" style="display:block;text-align:center;padding:11px;">Solicitar demonstração</a>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">Sob<span> consulta</span></div>
+      <div class="plan-sub">Para grandes operações com necessidades específicas</div>
+      <ul class="plan-features">
+        <li>Tudo do Pro</li>
+        <li>API dedicada</li>
+        <li>Integração ERP/TMS</li>
+        <li>SLA personalizado</li>
+        <li>Gerente de conta dedicado</li>
+        <li>Onboarding presencial</li>
+      </ul>
+      <a href="#contato" class="btn-ghost" style="display:block;text-align:center;padding:11px;">Falar com vendas</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contato">
+  <div class="section-label" style="text-align:center">Pronto para começar?</div>
+  <div class="cta-title">Sua frota mais segura<br>começa hoje.</div>
+  <p class="cta-sub">Agende uma demonstração gratuita de 30 minutos. Sem compromisso.</p>
+  <div class="cta-buttons">
+    <a href="https://fleetsafe-wine.vercel.app" class="btn-primary btn-large">Acessar plataforma →</a>
+    <a href="https://wa.me/5511999999999" class="btn-outline-large">💬 Falar no WhatsApp</a>
+  </div>
+  <p style="margin-top: 24px; font-size: 12px; color: var(--tx3);">Sem cartão de crédito · Sem fidelidade · Setup em 24h</p>
+</section>
+
+<footer>
+  <span class="footer-copy">© 2026 FleetSafe. Todos os direitos reservados.</span>
+  <div class="footer-links">
+    <a href="#">Privacidade</a>
+    <a href="#">Termos</a>
+    <a href="#contato">Contato</a>
+  </div>
+</footer>
+
+</body>
+</html>
