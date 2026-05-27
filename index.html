@@ -615,8 +615,7 @@ function addMessage(role, text, quickReplies) {
   const msgs = document.getElementById("chat-messages");
   const div = document.createElement("div");
   div.className = "msg " + role;
-  div.innerHTML = `<div class="bubble">${text.replace(/
-/g, "<br>")}</div><div class="time">${now()}</div>`;
+  div.innerHTML = '<div class="bubble">' + text.split('\n').join('<br>') + '</div><div class="time">' + now() + '</div>';
   if (quickReplies && quickReplies.length) {
     const qr = document.createElement("div");
     qr.className = "quick-replies";
