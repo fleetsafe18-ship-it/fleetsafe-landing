@@ -474,10 +474,10 @@
 
 <!-- CHATBOT FLEETSAFE -->
 <style>
-  #chat-btn { position: fixed; bottom: 28px; right: 28px; z-index: 1000; width: 56px; height: 56px; border-radius: 50%; background: #0EA5E9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(14,165,233,0.4); transition: transform 0.2s; }
+  #chat-btn { position: fixed; bottom: 28px; right: 24px; z-index: 1000; width: 56px; height: 56px; border-radius: 50%; background: #0EA5E9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(14,165,233,0.4); transition: transform 0.2s; }
   #chat-btn:hover { transform: scale(1.08); }
   #chat-btn svg { transition: opacity 0.2s; }
-  #chat-window { position: fixed; bottom: 96px; right: 28px; z-index: 1000; width: 360px; height: 520px; background: #0D1117; border: 1px solid #1E2D40; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 16px 48px rgba(0,0,0,0.5); transform: scale(0.95) translateY(10px); opacity: 0; pointer-events: none; transition: all 0.2s; }
+  #chat-window { position: fixed; bottom: 96px; right: 24px; z-index: 1000; width: min(360px, calc(100vw - 48px)); height: 520px; background: #0D1117; border: 1px solid #1E2D40; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 16px 48px rgba(0,0,0,0.5); transform: scale(0.95) translateY(10px); opacity: 0; pointer-events: none; transition: all 0.2s; }
   #chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
   #chat-header { background: #131B24; border-bottom: 1px solid #1E2D40; border-radius: 16px 16px 0 0; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
   #chat-header .avatar { width: 34px; height: 34px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -511,7 +511,7 @@
   .quick-replies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .qr { background: transparent; border: 1px solid #0EA5E9; border-radius: 20px; padding: 5px 12px; color: #0EA5E9; font-size: 11px; cursor: pointer; font-family: 'DM Sans',system-ui,sans-serif; transition: all 0.15s; }
   .qr:hover { background: #0EA5E9; color: #fff; }
-  #chat-notification { position: fixed; bottom: 92px; right: 28px; z-index: 999; background: #0D1117; border: 1px solid #1E2D40; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #E8F0F8; font-family: 'DM Sans',system-ui,sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 220px; animation: slideIn 0.3s ease; cursor: pointer; }
+  #chat-notification { position: fixed; bottom: 92px; right: 24px; z-index: 999; background: #0D1117; border: 1px solid #1E2D40; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #E8F0F8; font-family: 'DM Sans',system-ui,sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 220px; animation: slideIn 0.3s ease; cursor: pointer; }
   @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
