@@ -593,11 +593,11 @@ function getLeadInfo() {
 }
 
 function extractLeadData(text) {
-  const phoneMatch = text.match(/(\(?\d{2}\)?\s?\d{4,5}[-\s]?\d{4})/);
+  const phoneMatch = text.match(/[0-9]{10,11}/);
   if (phoneMatch && !leadData.phone) leadData.phone = phoneMatch[1];
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch && !leadData.email) leadData.email = emailMatch[0];
-  const fleetMatch = text.match(/(\d+)\s*(veículos?|carros?|caminhões?|vans?|ônibus)/i);
+  const fleetMatch = text.match(/(\d+)\s*(veiculos?|carros?|vans?)/i);
   if (fleetMatch && !leadData.fleet_size) leadData.fleet_size = fleetMatch[1] + " veículos";
   if (!leadData.name && text.split(" ").length <= 4 && text.length > 3 && text.length < 40 && !phoneMatch && !emailMatch) {
     const lower = text.toLowerCase();
