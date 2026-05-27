@@ -689,9 +689,7 @@ function toggleChat() {
   if (notif) notif.style.display = "none";
   if (chatOpen && document.getElementById("chat-messages").children.length === 0) {
     setTimeout(() => {
-      addMessage("bot", "Olá! 👋 Sou o assistente da FleetSafe.
-
-Como posso te ajudar hoje?", ["Ver planos e preços", "Quero uma demonstração", "Como funciona o sistema?"]);
+      addMessage("bot", "Olá! 👋 Sou o assistente da FleetSafe.\n\nComo posso te ajudar hoje?", ["Ver planos e preços", "Quero uma demonstração", "Como funciona o sistema?"]);
     }, 300);
   }
 }
