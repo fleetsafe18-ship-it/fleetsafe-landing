@@ -558,30 +558,7 @@ let leadData = { name: null, phone: null, email: null, fleet_size: null };
 let chatOpen = false;
 let notifDismissed = false;
 
-const systemPrompt = `Você é o assistente de vendas da FleetSafe, uma plataforma SaaS de telemetria inteligente para gestão de frotas.
-
-SOBRE A FLEETSAFE:
-- Plataforma completa com 11 módulos: Dashboard, Mapa ao vivo (GPS real), Frota, Motoristas, Alertas, Câmeras IA, Score IA, Manutenção, Combustível, Financeiro e Relatórios
-- Público-alvo: frotas de 5 a 200 veículos
-- Planos: Starter R$89/veículo/mês, Pro R$149/veículo/mês, Enterprise sob consulta
-- Diferenciais: Score automático de motoristas com IA, cruzamento de dados OBD + câmeras, alertas em tempo real, relatórios PDF/CSV
-- Câmeras IA detectam: sonolência, uso de celular, distração, saída de faixa, frenagem brusca
-- OBD integrado (em breve): leitura em tempo real do veículo, consumo real, falhas mecânicas
-
-SEU OBJETIVO:
-1. Responder dúvidas sobre a plataforma de forma clara e objetiva
-2. Identificar o tamanho da frota do visitante
-3. Capturar nome, telefone e email para agendar demonstração
-4. Ao final, enviar o lead para o WhatsApp
-
-INSTRUÇÕES:
-- Seja direto, amigável e profissional
-- Respostas curtas (máximo 3 linhas)
-- Quando tiver nome + telefone do lead, diga que vai conectar com a equipe de vendas
-- Não invente funcionalidades que não existem
-- Foque sempre em resolver a dor do cliente (custos, segurança, controle)
-
-DADOS DO LEAD JÁ COLETADOS: {leadInfo}`;
+const systemPrompt = "Você é o assistente de vendas da FleetSafe, uma plataforma SaaS de telemetria inteligente para gestão de frotas.\n\nSOBRE A FLEETSAFE:\n- Plataforma completa com 11 módulos: Dashboard, Mapa ao vivo (GPS real), Frota, Motoristas, Alertas, Câmeras IA, Score IA, Manutenção, Combustível, Financeiro e Relatórios\n- Público-alvo: frotas de 5 a 200 veículos\n- Planos: Starter R$89/veículo/mês, Pro R$149/veículo/mês, Enterprise sob consulta\n- Diferenciais: Score automático de motoristas com IA, cruzamento de dados OBD + câmeras, alertas em tempo real, relatórios PDF/CSV\n- Câmeras IA detectam: sonolência, uso de celular, distração, saída de faixa, frenagem brusca\n- OBD integrado (em breve): leitura em tempo real do veículo, consumo real, falhas mecânicas\n\nSEU OBJETIVO:\n1. Responder dúvidas sobre a plataforma de forma clara e objetiva\n2. Identificar o tamanho da frota do visitante\n3. Capturar nome, telefone e email para agendar demonstração\n4. Ao final, enviar o lead para o WhatsApp\n\nINSTRUÇÕES:\n- Seja direto, amigável e profissional\n- Respostas curtas (máximo 3 linhas)\n- Quando tiver nome + telefone do lead, diga que vai conectar com a equipe de vendas\n- Não invente funcionalidades que não existem\n- Foque sempre em resolver a dor do cliente (custos, segurança, controle)\n\nDADOS DO LEAD JÁ COLETADOS: {leadInfo}"
 
 function getLeadInfo() {
   const parts = [];
@@ -638,7 +615,7 @@ function showTyping() {
   const div = document.createElement("div");
   div.id = "typing-indicator";
   div.className = "msg bot";
-  div.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -670,21 +647,14 @@ async function callClaude(userMessage) {
 
 function checkAndSendToWhatsApp(botResponse) {
   if (leadData.name && leadData.phone) {
-    const msg = `🚛 *Novo lead FleetSafe*
-
-*Nome:* ${leadData.name}
-*Telefone:* ${leadData.phone}${leadData.email ? "
-*Email:* " + leadData.email : ""}${leadData.fleet_size ? "
-*Frota:* " + leadData.fleet_size : ""}
-
-_Lead capturado pelo chatbot do site_`;
+    const msg = '\u{1F69B} *Novo lead FleetSafe*\n\n*Nome:* ' + leadData.name + '\n*Telefone:* ' + leadData.phone + (leadData.email ? '\n*Email:* ' + leadData.email : '') + (leadData.fleet_size ? '\n*Frota:* ' + leadData.fleet_size : '') + '\n\n_Lead capturado pelo chatbot do site_';
     const encoded = encodeURIComponent(msg);
-    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
+    const waUrl = "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encoded;
     setTimeout(() => {
       const msgs = document.getElementById("chat-messages");
       const div = document.createElement("div");
       div.className = "msg bot";
-      div.innerHTML = `<div class="bubble">✅ Perfeito! Vou conectar você com nossa equipe agora.<br><br><a href="${waUrl}" target="_blank" style="background:#25D366;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;display:inline-block;margin-top:4px">💬 Abrir WhatsApp</a></div><div class="time">${now()}</div>`;
+      div.innerHTML = '<div class="bubble">✅ Perfeito! Vou conectar você com nossa equipe agora.<br><br><a href="' + waUrl + '" target="_blank" style="background:#25D366;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;display:inline-block;margin-top:4px">💬 Abrir WhatsApp</a></div><div class="time">' + now() + '</div>';
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
     }, 1000);
