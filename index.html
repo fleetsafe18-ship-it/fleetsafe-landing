@@ -570,15 +570,18 @@ function getLeadInfo() {
 }
 
 function extractLeadData(text) {
-  const phoneMatch = text.match(/[0-9]{10,11}/);
+  const phoneMatch = text.match(/[0-9]{8,11}/);
   if (phoneMatch && !leadData.phone) leadData.phone = phoneMatch[1];
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch && !leadData.email) leadData.email = emailMatch[0];
   const fleetMatch = text.match(/(\d+)\s*(veiculos?|carros?|vans?)/i);
   if (fleetMatch && !leadData.fleet_size) leadData.fleet_size = fleetMatch[1] + " veículos";
-  if (!leadData.name && text.split(" ").length <= 4 && text.length > 3 && text.length < 40 && !phoneMatch && !emailMatch) {
+  // Extract name from "meu nome e X" or "me chamo X" patterns
+  const nomeMatch = text.match(/(?:meu nome [eé]|me chamo|sou o?a?)\s+([A-Za-zÀ-ú]+)/i);
+  if (nomeMatch && !leadData.name) { leadData.name = nomeMatch[1]; }
+  else if (!leadData.name && text.split(" ").length <= 4 && text.length > 3 && text.length < 40 && !phoneMatch && !emailMatch) {
     const lower = text.toLowerCase();
-    if (!lower.includes("como") && !lower.includes("qual") && !lower.includes("quero") && !lower.includes("tenho")) {
+    if (!lower.includes("como") && !lower.includes("qual") && !lower.includes("quero") && !lower.includes("tenho") && !lower.includes("meu")) {
       leadData.name = text.trim();
     }
   }
