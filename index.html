@@ -471,5 +471,275 @@
   </div>
 </footer>
 
+
+<!-- CHATBOT FLEETSAFE -->
+<style>
+  #chat-btn { position: fixed; bottom: 28px; right: 28px; z-index: 1000; width: 56px; height: 56px; border-radius: 50%; background: #0EA5E9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(14,165,233,0.4); transition: transform 0.2s; }
+  #chat-btn:hover { transform: scale(1.08); }
+  #chat-btn svg { transition: opacity 0.2s; }
+  #chat-window { position: fixed; bottom: 96px; right: 28px; z-index: 1000; width: 360px; height: 520px; background: #0D1117; border: 1px solid #1E2D40; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 16px 48px rgba(0,0,0,0.5); transform: scale(0.95) translateY(10px); opacity: 0; pointer-events: none; transition: all 0.2s; }
+  #chat-window.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+  #chat-header { background: #131B24; border-bottom: 1px solid #1E2D40; border-radius: 16px 16px 0 0; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+  #chat-header .avatar { width: 34px; height: 34px; background: rgba(14,165,233,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  #chat-header .info { flex: 1; }
+  #chat-header .name { font-size: 13px; font-weight: 700; color: #E8F0F8; font-family: 'JetBrains Mono',monospace; }
+  #chat-header .status { font-size: 10px; color: #22C55E; display: flex; align-items: center; gap: 4px; }
+  #chat-header .status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #22C55E; display: inline-block; }
+  #chat-close { background: none; border: none; cursor: pointer; color: #3D5068; font-size: 18px; padding: 0; }
+  #chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  #chat-messages::-webkit-scrollbar { width: 4px; }
+  #chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #chat-messages::-webkit-scrollbar-thumb { background: #1E2D40; border-radius: 2px; }
+  .msg { max-width: 85%; display: flex; flex-direction: column; gap: 3px; }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg .bubble { padding: 10px 13px; border-radius: 12px; font-size: 13px; line-height: 1.5; font-family: 'DM Sans',system-ui,sans-serif; }
+  .msg.bot .bubble { background: #131B24; border: 1px solid #1E2D40; color: #E8F0F8; border-radius: 4px 12px 12px 12px; }
+  .msg.user .bubble { background: #0EA5E9; color: #fff; border-radius: 12px 4px 12px 12px; }
+  .msg .time { font-size: 9px; color: #3D5068; font-family: monospace; }
+  .msg.user .time { text-align: right; }
+  .typing { display: flex; gap: 4px; align-items: center; padding: 10px 13px; background: #131B24; border: 1px solid #1E2D40; border-radius: 4px 12px 12px 12px; width: fit-content; }
+  .typing span { width: 6px; height: 6px; border-radius: 50%; background: #0EA5E9; animation: bounce 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+  #chat-input-area { padding: 12px; border-top: 1px solid #1E2D40; display: flex; gap: 8px; }
+  #chat-input { flex: 1; background: #131B24; border: 1px solid #1E2D40; border-radius: 8px; padding: 10px 13px; color: #E8F0F8; font-size: 13px; outline: none; font-family: 'DM Sans',system-ui,sans-serif; resize: none; }
+  #chat-input::placeholder { color: #3D5068; }
+  #chat-send { background: #0EA5E9; border: none; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.2s; }
+  #chat-send:hover { opacity: 0.85; }
+  .quick-replies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .qr { background: transparent; border: 1px solid #0EA5E9; border-radius: 20px; padding: 5px 12px; color: #0EA5E9; font-size: 11px; cursor: pointer; font-family: 'DM Sans',system-ui,sans-serif; transition: all 0.15s; }
+  .qr:hover { background: #0EA5E9; color: #fff; }
+  #chat-notification { position: fixed; bottom: 92px; right: 28px; z-index: 999; background: #0D1117; border: 1px solid #1E2D40; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #E8F0F8; font-family: 'DM Sans',system-ui,sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 220px; animation: slideIn 0.3s ease; cursor: pointer; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<!-- Notification bubble -->
+<div id="chat-notification" onclick="openChat()">
+  👋 Olá! Posso te ajudar com o FleetSafe?
+  <div style="font-size:10px;color:#3D5068;margin-top:3px;">Clique para conversar</div>
+</div>
+
+<!-- Chat button -->
+<button id="chat-btn" onclick="toggleChat()">
+  <svg id="icon-chat" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <svg id="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+
+<!-- Chat window -->
+<div id="chat-window">
+  <div id="chat-header">
+    <div class="avatar">
+      <svg width="18" height="18" viewBox="0 0 260 48" style="display:inline-block">
+        <path d="M1 8 L10 14 L1 20" fill="none" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+        <path d="M9 8 L18 14 L9 20" fill="none" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="info">
+      <div class="name">FleetSafe IA</div>
+      <div class="status">Online agora</div>
+    </div>
+    <button id="chat-close" onclick="toggleChat()">×</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-area">
+    <textarea id="chat-input" placeholder="Digite sua mensagem..." rows="1" onkeydown="handleKey(event)"></textarea>
+    <button id="chat-send" onclick="sendMessage()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const WHATSAPP_NUMBER = "5511999999999"; // Trocar pelo número real
+const messages = [];
+let leadData = { name: null, phone: null, email: null, fleet_size: null };
+let chatOpen = false;
+let notifDismissed = false;
+
+const systemPrompt = `Você é o assistente de vendas da FleetSafe, uma plataforma SaaS de telemetria inteligente para gestão de frotas.
+
+SOBRE A FLEETSAFE:
+- Plataforma completa com 11 módulos: Dashboard, Mapa ao vivo (GPS real), Frota, Motoristas, Alertas, Câmeras IA, Score IA, Manutenção, Combustível, Financeiro e Relatórios
+- Público-alvo: frotas de 5 a 200 veículos
+- Planos: Starter R$89/veículo/mês, Pro R$149/veículo/mês, Enterprise sob consulta
+- Diferenciais: Score automático de motoristas com IA, cruzamento de dados OBD + câmeras, alertas em tempo real, relatórios PDF/CSV
+- Câmeras IA detectam: sonolência, uso de celular, distração, saída de faixa, frenagem brusca
+- OBD integrado (em breve): leitura em tempo real do veículo, consumo real, falhas mecânicas
+
+SEU OBJETIVO:
+1. Responder dúvidas sobre a plataforma de forma clara e objetiva
+2. Identificar o tamanho da frota do visitante
+3. Capturar nome, telefone e email para agendar demonstração
+4. Ao final, enviar o lead para o WhatsApp
+
+INSTRUÇÕES:
+- Seja direto, amigável e profissional
+- Respostas curtas (máximo 3 linhas)
+- Quando tiver nome + telefone do lead, diga que vai conectar com a equipe de vendas
+- Não invente funcionalidades que não existem
+- Foque sempre em resolver a dor do cliente (custos, segurança, controle)
+
+DADOS DO LEAD JÁ COLETADOS: {leadInfo}`;
+
+function getLeadInfo() {
+  const parts = [];
+  if (leadData.name) parts.push("Nome: " + leadData.name);
+  if (leadData.phone) parts.push("Telefone: " + leadData.phone);
+  if (leadData.email) parts.push("Email: " + leadData.email);
+  if (leadData.fleet_size) parts.push("Tamanho da frota: " + leadData.fleet_size);
+  return parts.length ? parts.join(", ") : "Nenhum dado coletado ainda";
+}
+
+function extractLeadData(text) {
+  const phoneMatch = text.match(/(\(?\d{2}\)?\s?\d{4,5}[-\s]?\d{4})/);
+  if (phoneMatch && !leadData.phone) leadData.phone = phoneMatch[1];
+  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (emailMatch && !leadData.email) leadData.email = emailMatch[0];
+  const fleetMatch = text.match(/(\d+)\s*(veículos?|carros?|caminhões?|vans?|ônibus)/i);
+  if (fleetMatch && !leadData.fleet_size) leadData.fleet_size = fleetMatch[1] + " veículos";
+  if (!leadData.name && text.split(" ").length <= 4 && text.length > 3 && text.length < 40 && !phoneMatch && !emailMatch) {
+    const lower = text.toLowerCase();
+    if (!lower.includes("como") && !lower.includes("qual") && !lower.includes("quero") && !lower.includes("tenho")) {
+      leadData.name = text.trim();
+    }
+  }
+}
+
+function now() {
+  return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function addMessage(role, text, quickReplies) {
+  const msgs = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.innerHTML = `<div class="bubble">${text.replace(/
+/g, "<br>")}</div><div class="time">${now()}</div>`;
+  if (quickReplies && quickReplies.length) {
+    const qr = document.createElement("div");
+    qr.className = "quick-replies";
+    quickReplies.forEach(q => {
+      const btn = document.createElement("button");
+      btn.className = "qr";
+      btn.textContent = q;
+      btn.onclick = () => { document.getElementById("chat-input").value = q; sendMessage(); };
+      qr.appendChild(btn);
+    });
+    div.appendChild(qr);
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  messages.push({ role: role === "bot" ? "assistant" : "user", content: text });
+}
+
+function showTyping() {
+  const msgs = document.getElementById("chat-messages");
+  const div = document.createElement("div");
+  div.id = "typing-indicator";
+  div.className = "msg bot";
+  div.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+async function callClaude(userMessage) {
+  const prompt = systemPrompt.replace("{leadInfo}", getLeadInfo());
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 300,
+        system: prompt,
+        messages: messages.filter(m => m.role === "user" || m.role === "assistant").slice(-10)
+      })
+    });
+    const data = await response.json();
+    return data.content?.[0]?.text || "Desculpe, tive um problema. Pode repetir?";
+  } catch (e) {
+    return "Ops, tive uma instabilidade. Tente novamente em instantes! 😊";
+  }
+}
+
+function checkAndSendToWhatsApp(botResponse) {
+  if (leadData.name && leadData.phone) {
+    const msg = `🚛 *Novo lead FleetSafe*
+
+*Nome:* ${leadData.name}
+*Telefone:* ${leadData.phone}${leadData.email ? "
+*Email:* " + leadData.email : ""}${leadData.fleet_size ? "
+*Frota:* " + leadData.fleet_size : ""}
+
+_Lead capturado pelo chatbot do site_`;
+    const encoded = encodeURIComponent(msg);
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`;
+    setTimeout(() => {
+      const msgs = document.getElementById("chat-messages");
+      const div = document.createElement("div");
+      div.className = "msg bot";
+      div.innerHTML = `<div class="bubble">✅ Perfeito! Vou conectar você com nossa equipe agora.<br><br><a href="${waUrl}" target="_blank" style="background:#25D366;color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700;display:inline-block;margin-top:4px">💬 Abrir WhatsApp</a></div><div class="time">${now()}</div>`;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }, 1000);
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  input.style.height = "auto";
+  extractLeadData(text);
+  addMessage("user", text);
+  showTyping();
+  const reply = await callClaude(text);
+  removeTyping();
+  addMessage("bot", reply);
+  checkAndSendToWhatsApp(reply);
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById("chat-window").classList.toggle("open", chatOpen);
+  document.getElementById("icon-chat").style.display = chatOpen ? "none" : "block";
+  document.getElementById("icon-close").style.display = chatOpen ? "block" : "none";
+  const notif = document.getElementById("chat-notification");
+  if (notif) notif.style.display = "none";
+  if (chatOpen && document.getElementById("chat-messages").children.length === 0) {
+    setTimeout(() => {
+      addMessage("bot", "Olá! 👋 Sou o assistente da FleetSafe.
+
+Como posso te ajudar hoje?", ["Ver planos e preços", "Quero uma demonstração", "Como funciona o sistema?"]);
+    }, 300);
+  }
+}
+
+function openChat() {
+  if (!chatOpen) toggleChat();
+}
+
+// Auto show notification after 4s
+setTimeout(() => {
+  const notif = document.getElementById("chat-notification");
+  if (notif && !chatOpen) notif.style.display = "block";
+}, 4000);
+
+// Hide notification initially
+document.getElementById("chat-notification").style.display = "none";
+</script>
+
 </body>
 </html>
